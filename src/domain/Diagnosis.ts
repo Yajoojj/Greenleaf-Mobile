@@ -1,4 +1,4 @@
-import type { Analysis, ApiSeverity, DiagnosisState, PredictionResult } from './types';
+import type { Analysis, ApiSeverity, DiagnosisState, OtherDisease, PredictionResult } from './types';
 
 const SEVERITY_TO_STATE: Record<ApiSeverity, DiagnosisState> = {
   Leve: 'leve',
@@ -18,10 +18,12 @@ export class Diagnosis {
     readonly colorOnly: boolean,
     /** Severidade da API, `null` para folha sadia. */
     readonly severity: ApiSeverity | null,
+    /** Sem bacteriose, mas com sinais de outra doença (só no estado `sadia`). */
+    readonly otherDisease: OtherDisease | null = null,
   ) {}
 
   get isHealthy(): boolean {
-    return this.state === 'sadia';
+    return this.state === 'sadia' && this.otherDisease === null;
   }
 
   /** Posição na escala Sadia → Grave (0 a 3). */
@@ -29,8 +31,15 @@ export class Diagnosis {
     return ['sadia', 'leve', 'moderada', 'grave'].indexOf(this.state);
   }
 
-  static fromAnalysis(a: Pick<Analysis, 'state' | 'probability' | 'ratio' | 'modelProbability' | 'severity'>): Diagnosis {
-    return new Diagnosis(a.state, toPercent(a.probability), toRatioPercent(a.ratio), a.modelProbability === null, a.severity);
+  static fromAnalysis(a: Pick<Analysis, 'state' | 'probability' | 'ratio' | 'modelProbability' | 'severity' | 'otherDisease'>): Diagnosis {
+    return new Diagnosis(
+      a.state,
+      toPercent(a.probability),
+      toRatioPercent(a.ratio),
+      a.modelProbability === null,
+      a.severity,
+      a.state === 'sadia' ? (a.otherDisease ?? null) : null,
+    );
   }
 }
 
@@ -50,6 +59,7 @@ export function toRatioPercent(r: number): number {
  * Converte a resposta do Axios Cassava IA no estado exibido.
  * - `Saudavel` → Sadia, ignorando `severity` (a API devolve "Leve" mesmo para folha sadia).
  * - `Infectado` → Leve / Moderada / Grave conforme `severity`.
+ * - `other_disease` (servidor v2) só vale para `Saudavel`: sem bacteriose, mas com outra doença.
  * Função pura: sem efeitos colaterais nem dependência de tela.
  */
 export function mapPrediction(raw: PredictionResult): Diagnosis {
@@ -61,5 +71,6 @@ export function mapPrediction(raw: PredictionResult): Diagnosis {
     toRatioPercent(raw.ratio),
     raw.model_probability === null,
     healthy ? null : raw.severity,
+    healthy ? (raw.other_disease ?? null) : null,
   );
 }

@@ -18,6 +18,10 @@ export const predictionResultSchema = z.object({
   severity: z.enum(['Leve', 'Moderada', 'Grave']),
   processing_time_ms: z.number().finite().min(0),
   overlay: z.string().max(16_000_000).regex(IMAGE_DATA_URL, 'overlay inválido'),
+  // Extras do servidor v2. Opcionais para continuar aceitando o servidor antigo;
+  // os demais campos novos (`diagnosis`, `class_probabilities`) são descartados pelo zod.
+  other_disease: z.enum(['CBSD', 'CGM', 'CMD']).nullable().optional(),
+  model_version: z.string().max(80).nullable().optional(),
 }) satisfies z.ZodType<PredictionResult>;
 
 export const healthStatusSchema = z.object({
