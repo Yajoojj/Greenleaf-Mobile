@@ -53,9 +53,10 @@ export function DiagnosisView({
 
       <section className="gl-stack gl-stack--sm" aria-label={t('result.chance')}>
         <div className="gl-metrics">
+          {/* Nível de risco no lugar da porcentagem: com o limiar em 26%, "33%" ao lado de "Sinais de bacteriose" confundia. */}
           <div className="gl-metric">
-            <p className="gl-metric__value">{d.probabilityPercent}%</p>
-            <p className="gl-metric__label">{t('result.chance')}</p>
+            <p className="gl-metric__value">{t(`risk.${d.riskLevel}`)}</p>
+            <p className="gl-metric__label">{t('result.risk')}</p>
           </div>
           <div className="gl-metric">
             <p className="gl-metric__value">{formatNumber(d.ratioPercent, 1)}%</p>
@@ -110,6 +111,14 @@ export function DiagnosisView({
         </summary>
         <div className="gl-accordion__content">
           <dl className="gl-kv">
+            <dt>{t('result.chance')}</dt>
+            <dd>{d.probabilityPercent}%</dd>
+            {analysis.topClass && (
+              <>
+                <dt>{t('result.details.topClass')}</dt>
+                <dd>{`${t(`class.${analysis.topClass.code}`)} — ${Math.round(analysis.topClass.probability * 100)}%`}</dd>
+              </>
+            )}
             <dt>{t('result.details.model')}</dt>
             <dd>{analysis.modelProbability === null ? t('result.details.na') : `${Math.round(analysis.modelProbability * 100)}%`}</dd>
             <dt>{t('result.details.hsv')}</dt>

@@ -27,7 +27,15 @@ export class PredictionError extends Error {
   }
 }
 
-export type AuthErrorKind = 'invalid_credentials' | 'email_taken' | 'weak_password' | 'invalid_email' | 'invalid_name' | 'not_signed_in';
+export type AuthErrorKind =
+  | 'invalid_credentials'
+  | 'email_taken'
+  | 'weak_password'
+  | 'invalid_email'
+  | 'invalid_name'
+  | 'not_signed_in'
+  /** Conta criada (ou login tentado) antes de confirmar o e-mail (Supabase Auth). */
+  | 'confirm_email';
 
 export class AuthError extends Error {
   constructor(readonly kind: AuthErrorKind) {

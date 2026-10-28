@@ -18,7 +18,7 @@ describe('predictionResultSchema', () => {
     expect(predictionResultSchema.safeParse(valid).success).toBe(true);
   });
 
-  it('aceita a resposta do servidor v2 e descarta campos extras que o app não usa', () => {
+  it('aceita a resposta do servidor v2 e guarda as 5 probabilidades e a classe mais provável', () => {
     const r = predictionResultSchema.safeParse({
       ...valid,
       class: 'Saudavel',
@@ -30,7 +30,14 @@ describe('predictionResultSchema', () => {
     });
     expect(r.success).toBe(true);
     expect(r.success && r.data.other_disease).toBe('CMD');
-    expect(r.success && 'class_probabilities' in r.data).toBe(false);
+    expect(r.success && r.data.class_probabilities?.CMD).toBe(0.9);
+    expect(r.success && r.data.diagnosis?.code).toBe('CMD');
+  });
+
+  it('campos v2 continuam opcionais e são validados quando vêm', () => {
+    expect(predictionResultSchema.safeParse({ ...valid, class_probabilities: { CBB: 2, CBSD: 0, CGM: 0, CMD: 0, Healthy: 0 } }).success).toBe(false);
+    expect(predictionResultSchema.safeParse({ ...valid, diagnosis: { code: 'XYZ', label: 'x', probability: 0.5 } }).success).toBe(false);
+    expect(healthStatusSchema.safeParse({ status: 'ok', version: '2', environment: 'p', model_loaded: true, supabase_logging: false, model_version: 'm' }).success).toBe(true);
   });
 
   it('rejeita other_disease desconhecida', () => {

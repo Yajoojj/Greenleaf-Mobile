@@ -29,6 +29,8 @@ export class AnalysisBuilder {
       overlayDataUrl: result.overlay,
       otherDisease: diagnosis.otherDisease,
       modelVersion: result.model_version ?? null,
+      classProbabilities: result.class_probabilities ?? null,
+      topClass: result.diagnosis ?? null,
       source,
       simulated,
     };

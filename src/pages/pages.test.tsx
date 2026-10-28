@@ -1,6 +1,6 @@
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useEffect } from 'react';
 import { useSession } from '../app/session';
 import { PredictionError } from '../domain/errors';
@@ -42,9 +42,12 @@ describe('DiagnosisView', () => {
     expect(screen.queryByText(/Sinais/)).toBeNull();
   });
 
-  it('mostra probabilidade com aviso de estimativa, taxa e o que fazer', () => {
+  it('mostra o nível de risco (a porcentagem fica nos detalhes técnicos), aviso de estimativa, taxa e o que fazer', () => {
     renderPage(<DiagnosisView analysis={analysis()} />);
-    expect(screen.getByText('42%')).toBeInTheDocument();
+    expect(screen.getByText('Médio')).toBeInTheDocument();
+    expect(screen.getByText('Risco de bacteriose')).toBeInTheDocument();
+    const details = screen.getByText('Detalhes técnicos').closest('details')!;
+    expect(within(details).getByText('42%')).toBeInTheDocument();
     expect(screen.getByText('7,8%')).toBeInTheDocument();
     expect(screen.getByText(/Estimativa — não substitui a avaliação de um agrônomo/)).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /O que fazer agora/ })).toBeInTheDocument();
@@ -275,5 +278,86 @@ describe('telas futuras (atrás de flag)', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Agora não' }));
     expect(services.location.requestConsent).not.toHaveBeenCalled();
     expect(services.location.revokeConsent).toHaveBeenCalled();
+  });
+});
+
+describe('mapa de calor com dados reais', () => {
+  it('sem "Em breve" nem aviso de fictício; desenha só as células agregadas', async () => {
+    const { HeatmapPage } = await import('./HeatmapPage');
+    const cells = vi.fn().mockResolvedValue([
+      { latitude: -24.503, longitude: -47.858, total: 8, infected: 4 },
+      { latitude: -24.413, longitude: -47.948, total: 5, infected: 0 },
+    ]);
+    const { container } = renderPage(<HeatmapPage />, { services: fakeServices({ heatmap: { simulated: false, cells } }) });
+    expect(await screen.findByText(/Dados reais e agregados/)).toBeInTheDocument();
+    expect(screen.queryByText('Em breve')).toBeNull();
+    expect(screen.queryByText(/Dados fictícios/)).toBeNull();
+    await waitFor(() => expect(container.querySelectorAll('circle[fill="url(#hot)"]').length).toBe(1));
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('sem células suficientes, avisa que ainda não há dados', async () => {
+    const { HeatmapPage } = await import('./HeatmapPage');
+    renderPage(<HeatmapPage />, { services: fakeServices({ heatmap: { simulated: false, cells: vi.fn().mockResolvedValue([]) } }) });
+    expect(await screen.findByText(/Ainda não há análises suficientes/)).toBeInTheDocument();
+  });
+});
+
+describe('HistorySyncPrompt (primeiro login com histórico local)', () => {
+  const ana = { id: 'u-ana', name: 'Ana', email: 'ana@x.co', createdAt: '' };
+
+  beforeEach(() => localStorage.clear());
+
+  it('pergunta uma vez e envia ao confirmar', async () => {
+    const { HistorySyncPrompt } = await import('../app/HistorySyncPrompt');
+    const historySync = { pendingLocal: vi.fn().mockResolvedValue(3), uploadLocal: vi.fn().mockResolvedValue(3) };
+    const services = fakeServices({ historySync, auth: { ...fakeServices().auth, currentUser: vi.fn().mockResolvedValue(ana) } });
+    renderPage(<HistorySyncPrompt />, { services });
+    expect(await screen.findByText('Enviar minhas análises deste aparelho para a conta? (3)')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Enviar para a conta' }));
+    expect(historySync.uploadLocal).toHaveBeenCalledTimes(1);
+    expect(localStorage.getItem('gl.sync.asked.u-ana')).toBe('1');
+  });
+
+  it('"Agora não" não envia e não pergunta de novo', async () => {
+    const { HistorySyncPrompt } = await import('../app/HistorySyncPrompt');
+    const historySync = { pendingLocal: vi.fn().mockResolvedValue(2), uploadLocal: vi.fn() };
+    const services = fakeServices({ historySync, auth: { ...fakeServices().auth, currentUser: vi.fn().mockResolvedValue(ana) } });
+    renderPage(<HistorySyncPrompt />, { services });
+    await userEvent.click(await screen.findByRole('button', { name: 'Agora não' }));
+    expect(historySync.uploadLocal).not.toHaveBeenCalled();
+    expect(localStorage.getItem('gl.sync.asked.u-ana')).toBe('1');
+  });
+
+  it('sem back-end real, sem login ou sem análises locais, não aparece', async () => {
+    const { HistorySyncPrompt } = await import('../app/HistorySyncPrompt');
+    const historySync = { pendingLocal: vi.fn().mockResolvedValue(0), uploadLocal: vi.fn() };
+    renderPage(<HistorySyncPrompt />, { services: fakeServices({ historySync }) });
+    renderPage(<HistorySyncPrompt />, { services: fakeServices({ historySync, auth: { ...fakeServices().auth, currentUser: vi.fn().mockResolvedValue(ana) } }) });
+    await waitFor(() => expect(historySync.pendingLocal).toHaveBeenCalled());
+    expect(screen.queryByText(/Enviar minhas análises/)).toBeNull();
+  });
+});
+
+describe('modo demonstração com respostas reais da IA v2', () => {
+  it('5 exemplos, rotulados pelo resultado real, incluindo "Sem bacteriose"', async () => {
+    const { CapturePage } = await import('./CapturePage');
+    renderPage(<CapturePage />, { services: fakeServices({ predictionMode: 'demo' }), settings: { demoMode: true } });
+    const tiles = screen.getAllByRole('button', { name: /Exemplo \d: / });
+    expect(tiles).toHaveLength(5);
+    expect(screen.getByRole('button', { name: /Exemplo 5: Sem bacteriose$/ })).toBeInTheDocument();
+  });
+});
+
+describe('DiagnosisView — detalhes técnicos da IA v2', () => {
+  it('mostra a classe mais provável e a porcentagem só nos detalhes', () => {
+    const a = analysis({ probability: 0.33, state: 'leve', severity: 'Leve', topClass: { code: 'Healthy', label: 'Sadia', probability: 0.526 } });
+    renderPage(<DiagnosisView analysis={a} />);
+    expect(screen.getByText('Médio')).toBeInTheDocument();
+    const details = screen.getByText('Detalhes técnicos').closest('details')!;
+    expect(within(details).getByText('Classe mais provável (entre 5)')).toBeInTheDocument();
+    expect(within(details).getByText('Sadia — 53%')).toBeInTheDocument();
+    expect(within(details).getByText('33%')).toBeInTheDocument();
+    expect(screen.getByText(/não substitui a avaliação de um agrônomo/, { selector: '.gl-disclaimer span' })).toBeInTheDocument();
   });
 });

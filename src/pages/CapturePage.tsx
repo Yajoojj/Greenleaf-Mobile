@@ -174,7 +174,9 @@ export function CapturePage() {
             <p>{t('capture.demoBody')}</p>
           </div>
           <div className="gl-demo-grid">
-            {DEMO_EXAMPLES.map((ex) => (
+            {DEMO_EXAMPLES.map((ex, i) => {
+              const state = ex.otherDisease ? t('state.semBacteriose') : t(`state.${ex.state}`);
+              return (
               <button
                 key={ex.id}
                 type="button"
@@ -183,10 +185,11 @@ export function CapturePage() {
                 aria-busy={loadingDemo === ex.id || undefined}
                 disabled={loadingDemo !== null}
               >
-                <img src={ex.image} alt={t('capture.demoAlt', { state: t(`state.${ex.id}`) })} />
-                <span>{t('capture.demoExample', { state: t(`state.${ex.id}`).toLowerCase() })}</span>
+                <img src={ex.image} alt={t('capture.demoAlt', { n: i + 1, state })} />
+                <span>{t('capture.demoExample', { n: i + 1, state })}</span>
               </button>
-            ))}
+              );
+            })}
           </div>
           <p className="gl-xs gl-muted">{t('capture.demoIllustration')}</p>
           {errorBox}

@@ -7,6 +7,7 @@ export function ConfirmDialog({
   open,
   message,
   confirmLabel,
+  cancelLabel,
   danger,
   onConfirm,
   onCancel,
@@ -14,6 +15,8 @@ export function ConfirmDialog({
   open: boolean;
   message: string;
   confirmLabel: string;
+  /** Padrão: "Cancelar". */
+  cancelLabel?: string;
   danger?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
@@ -40,7 +43,7 @@ export function ConfirmDialog({
         <p id="gl-dialog-msg" style={{ fontWeight: 600 }}>{message}</p>
         <div className="gl-stack gl-stack--sm">
           <Button variant={danger ? 'danger' : 'primary'} block onClick={onConfirm}>{confirmLabel}</Button>
-          <Button variant="ghost" block onClick={onCancel}>{t('common.cancel')}</Button>
+          <Button variant="ghost" block onClick={onCancel}>{cancelLabel ?? t('common.cancel')}</Button>
         </div>
       </form>
     </dialog>

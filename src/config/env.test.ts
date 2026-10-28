@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkApiUrl } from './env';
+import { checkApiUrl, checkSupabase } from './env';
 
 describe('checkApiUrl', () => {
   it('sem variável → usa mock', () => {
@@ -29,5 +29,29 @@ describe('checkApiUrl', () => {
     expect(checkApiUrl('https://user:pass@x.com', true).error).toBe('invalid');
     expect(checkApiUrl('https://x.com/?token=1', true).error).toBe('invalid');
     expect(checkApiUrl('não é url', true).error).toBe('invalid');
+  });
+});
+
+describe('checkSupabase', () => {
+  const jwt = (role: string) => `x.${btoa(JSON.stringify({ role })).replace(/=+$/, '')}.y`;
+
+  it('sem variáveis → mocks, sem erro', () => {
+    expect(checkSupabase(undefined, undefined, false)).toEqual({ config: null, error: null });
+  });
+
+  it('aceita URL https + chave anônima ou publicável', () => {
+    expect(checkSupabase('https://abc.supabase.co/', jwt('anon'), false).config).toEqual({ url: 'https://abc.supabase.co', anonKey: jwt('anon') });
+    expect(checkSupabase('https://abc.supabase.co', 'sb_publishable_123', false).config?.anonKey).toBe('sb_publishable_123');
+  });
+
+  it('recusa a chave service role e chaves secretas', () => {
+    expect(checkSupabase('https://abc.supabase.co', jwt('service_role'), false)).toEqual({ config: null, error: 'secret_key' });
+    expect(checkSupabase('https://abc.supabase.co', 'sb_secret_abc', false).error).toBe('secret_key');
+  });
+
+  it('exige as duas variáveis e https', () => {
+    expect(checkSupabase('https://abc.supabase.co', '', false).error).toBe('invalid');
+    expect(checkSupabase(undefined, jwt('anon'), false).error).toBe('invalid');
+    expect(checkSupabase('http://abc.supabase.co', jwt('anon'), false).error).toBe('insecure');
   });
 });

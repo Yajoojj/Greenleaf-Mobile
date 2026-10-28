@@ -12,9 +12,25 @@ const file = (url: string) => new Blob([readFileSync(resolve(publicDir, `.${url}
 const fakeFetch = (async (url: string) => ({ blob: async () => file(url) })) as unknown as typeof fetch;
 
 describe('DemoPredictionService', () => {
-  it('os 4 exemplos gravados cobrem sadia, leve, moderada e grave', () => {
-    const states = RECORDED_CASES.map((c) => mapPrediction({ ...c.response, overlay: 'data:image/png;base64,AA==' }).state);
-    expect(states).toEqual(['sadia', 'leve', 'moderada', 'grave']);
+  it('os 5 exemplos têm respostas reais da IA v2 (não "apenas pela cor") com overlay JPEG', () => {
+    expect(RECORDED_CASES).toHaveLength(5);
+    for (const c of RECORDED_CASES) {
+      expect(c.response.model_probability, c.id).not.toBeNull();
+      expect(c.response.model_version, c.id).toBe('greenleaf_effb0-2026-10-28');
+      expect(Object.keys(c.response.class_probabilities ?? {}).sort(), c.id).toEqual(['CBB', 'CBSD', 'CGM', 'CMD', 'Healthy']);
+      expect(c.response.overlay, c.id).toMatch(/^\/demo\/.+-overlay\.jpg$/);
+      expect(mapPrediction({ ...c.response, overlay: 'data:image/jpeg;base64,AA==' }).colorOnly, c.id).toBe(false);
+    }
+  });
+
+  it('inclui sadia, bacteriose e o caso "sem bacteriose — outra doença" (mosaico)', () => {
+    const d = RECORDED_CASES.map((c) => mapPrediction({ ...c.response, overlay: 'data:image/jpeg;base64,AA==' }));
+    expect(d.some((x) => x.isHealthy)).toBe(true);
+    expect(d.some((x) => x.state !== 'sadia')).toBe(true);
+    const other = d.find((x) => x.otherDisease !== null)!;
+    expect(other.otherDisease).toBe('CMD');
+    expect(other.state).toBe('sadia');
+    expect(other.severity).toBeNull(); // a API manda "Moderada", mas sem bacteriose não há severidade
   });
 
   it('a folha sadia gravada vem com severity "Leve" e mesmo assim vira Sadia', () => {
