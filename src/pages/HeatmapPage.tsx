@@ -1,4 +1,7 @@
 import { Info } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useServices } from '../app/services';
+import type { HeatmapCell } from '../domain/services';
 import { useI18n } from '../i18n';
 import { StatusMessage } from '../ui';
 import { BackLink } from './parts/BackLink';
@@ -20,25 +23,37 @@ const TOWNS: { name: string; lon: number; lat: number }[] = [
   { name: 'Barra do Turvo', lon: -48.5, lat: -24.76 },
 ];
 
-/** DADOS FICTÍCIOS — servem apenas para demonstrar a interface futura. */
-const FAKE_HOTSPOTS: { lon: number; lat: number; intensity: number }[] = [
-  { lon: -47.86, lat: -24.52, intensity: 1 },
-  { lon: -47.95, lat: -24.42, intensity: 0.7 },
-  { lon: -48.08, lat: -24.55, intensity: 0.55 },
-  { lon: -47.9, lat: -24.69, intensity: 0.45 },
-  { lon: -47.62, lat: -24.35, intensity: 0.35 },
-  { lon: -48.12, lat: -24.72, intensity: 0.3 },
-];
-
 const W = 600;
 const H = 420;
 const x = (lon: number) => ((lon + 48.75) / 1.45) * W;
 const y = (lat: number) => ((-24.12 - lat) / 1.0) * H;
 
-/** [Futuro — FEATURE_HEATMAP] Só interface, com dados fictícios e etiqueta "Em breve". */
+/**
+ * [FEATURE_HEATMAP] Mapa de calor. Com o Supabase, mostra só células agregadas (≥ 5 análises em ~5 km);
+ * sem ele, os dados fictícios do mock, com a etiqueta "Em breve" e o aviso de dados fictícios.
+ */
 export function HeatmapPage() {
   const { t } = useI18n();
+  const { heatmap } = useServices();
+  const [cells, setCells] = useState<HeatmapCell[] | null>(null);
+  const [failed, setFailed] = useState(false);
   usePageTitle(t('heatmap.title'));
+
+  useEffect(() => {
+    let alive = true;
+    setFailed(false);
+    heatmap.cells().then(
+      (c) => alive && setCells(c),
+      () => alive && setFailed(true),
+    );
+    return () => {
+      alive = false;
+    };
+  }, [heatmap]);
+
+  // Intensidade relativa: a célula com mais casos de bacteriose é a mais quente.
+  const maxInfected = Math.max(1, ...(cells ?? []).map((c) => c.infected));
+  const hotspots = (cells ?? []).filter((c) => c.infected > 0).map((c) => ({ lon: c.longitude, lat: c.latitude, intensity: c.infected / maxInfected }));
 
   const river = [[-48.62, -24.6], [-48.35, -24.6], [-48.11, -24.52], [-47.95, -24.42], [-47.84, -24.49], [-47.7, -24.55], [-47.55, -24.68]]
     .map(([lo, la], i) => `${i ? 'L' : 'M'}${x(lo).toFixed(1)} ${y(la).toFixed(1)}`)
@@ -49,13 +64,19 @@ export function HeatmapPage() {
       <BackLink />
       <div className="gl-row">
         <h1 className="gl-grow">{t('heatmap.title')}</h1>
-        <span className="gl-badge gl-badge--soon">{t('badge.soon')}</span>
+        {heatmap.simulated && <span className="gl-badge gl-badge--soon">{t('badge.soon')}</span>}
       </div>
       <p className="gl-muted">{t('heatmap.subtitle')}</p>
-      <StatusMessage tone="warning" icon="info">{t('heatmap.fake')}</StatusMessage>
+      {heatmap.simulated ? (
+        <StatusMessage tone="warning" icon="info">{t('heatmap.fake')}</StatusMessage>
+      ) : (
+        <p className="gl-small gl-muted">{t('heatmap.real')}</p>
+      )}
+      {failed && <StatusMessage tone="error" role="alert">{t('heatmap.error')}</StatusMessage>}
+      {cells !== null && hotspots.length === 0 && !failed && <StatusMessage tone="info" icon="info">{t('heatmap.empty')}</StatusMessage>}
 
       <figure className="gl-map" style={{ margin: 0 }}>
-        <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t('heatmap.mapAlt')}>
+        <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t(heatmap.simulated ? 'heatmap.mapAlt' : 'heatmap.realAlt')}>
           <defs>
             <radialGradient id="hot">
               <stop offset="0%" stopColor="#C42B2B" stopOpacity="0.85" />
@@ -71,7 +92,7 @@ export function HeatmapPage() {
             stroke="#B5C9A5"
           />
           <path d={river} fill="none" stroke="#7FB3CF" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-          {FAKE_HOTSPOTS.map((h, i) => (
+          {hotspots.map((h, i) => (
             <circle key={i} cx={x(h.lon)} cy={y(h.lat)} r={30 + 50 * h.intensity} fill="url(#hot)" opacity={0.5 + 0.5 * h.intensity} />
           ))}
           {TOWNS.map((tw) => (

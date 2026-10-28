@@ -2,6 +2,7 @@ import { Eye, EyeOff, UserRoundX } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../app/auth';
+import { useServices } from '../app/services';
 import { useSettings } from '../app/settings';
 import { AuthError } from '../domain/errors';
 import { useI18n, type MessageKey } from '../i18n';
@@ -16,6 +17,7 @@ export function AuthPage() {
   const navigate = useNavigate();
   const { update } = useSettings();
   const { signIn, signUp } = useAuth();
+  const { accountMode } = useServices();
   const [mode, setMode] = useState<Mode>('signIn');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -51,7 +53,7 @@ export function AuthPage() {
         <LeafMark size={56} />
         <div className="gl-page-title">
           <h1>{t(`auth.title.${mode}`)}</h1>
-          <p>{t('auth.subtitle')}</p>
+          <p>{t(accountMode === 'cloud' ? 'auth.subtitle.cloud' : 'auth.subtitle')}</p>
         </div>
       </div>
 
@@ -106,7 +108,7 @@ export function AuthPage() {
         </div>
 
         {error && <StatusMessage tone="error" role="alert">{t(error)}</StatusMessage>}
-        <p className="gl-xs gl-muted">{t('auth.mockNotice')}</p>
+        {accountMode === 'local' && <p className="gl-xs gl-muted">{t('auth.mockNotice')}</p>}
 
         <div className="gl-action-bar">
           <Button type="submit" size="lg" block loading={busy}>
