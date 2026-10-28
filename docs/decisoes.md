@@ -217,6 +217,15 @@ Como a `main` ainda não tem a integração, a primeira versão de produção fo
 (`vercel deploy --prod`); depois do merge do PR #2, cada push na `main` publica sozinho. Verificado no endereço publicado:
 CSP sem erro, `POST /predict` (2,6 s) e `heatmap_cells` respondendo a partir da origem da Vercel.
 
+### D-34 Manter a IA acordada (cron-job.org)
+No plano gratuito a Render "dorme" depois de ~15 min sem uso, e o primeiro `/predict` depois disso levou 22 s (pode chegar a
+~1 min). Entre o plano Starter (US$ 7/mês) e um "despertador" gratuito, a equipe escolheu o **gratuito**: tarefa
+"GreenLeaf IA – manter acordada" no **cron-job.org** (conta da equipe), `GET https://greenleaf-ia.onrender.com/health` a cada
+**10 minutos** (`*/10 * * * *`, fuso America/Sao_Paulo), sem cabeçalhos nem autenticação (o `/health` não expõe dado
+sensível). As 750 h/mês grátis da Render cobrem um serviço ligado 24 h. Não usamos GitHub Actions agendado porque o horário
+atrasa e o GitHub desliga agendamentos de repositórios parados. O app não depende disso: `useServerStatus` já chama `/health`
+ao abrir e mostra "Servidor acordando". Se o app passar a ter uso real, trocar pelo plano pago e desativar a tarefa.
+
 ## Modelo para próximos registros
 
 | Data | Atividades realizadas | Dificuldades / decisões | Responsável |
