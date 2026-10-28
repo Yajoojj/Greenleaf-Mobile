@@ -1,0 +1,13 @@
+# Cabeçalhos de segurança para hospedagens estáticas que leem este arquivo (Netlify, Cloudflare Pages).
+# A CSP também vai no <meta> do index.html; aqui ela ganha frame-ancestors, que <meta> não aceita.
+# Ao publicar com VITE_API_URL, acrescente a origem da API em connect-src.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; media-src 'self' blob:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Permissions-Policy: camera=(self), geolocation=(self), microphone=()
+  Cross-Origin-Opener-Policy: same-origin
+
+/sw.js
+  Cache-Control: no-cache
