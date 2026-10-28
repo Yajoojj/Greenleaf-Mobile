@@ -1,4 +1,20 @@
-import type { Analysis, ApiSeverity, DiagnosisState, OtherDisease, PredictionResult } from './types';
+import type { Analysis, ApiSeverity, DiagnosisState, OtherDisease, PredictionResult, RiskLevel } from './types';
+
+/** Limiar calibrado da IA v2 (`decision.threshold` em greenleaf_effb0.json): a partir dele, "Infectado". */
+export const RISK_THRESHOLD_MEDIUM = 0.26;
+export const RISK_THRESHOLD_HIGH = 0.6;
+
+/**
+ * Nível de risco de bacteriose a partir da probabilidade combinada (0–1):
+ * abaixo de 0,26 → baixo; de 0,26 a 0,60 → médio; acima de 0,60 → alto.
+ * Com o limiar em 0,26, "33% de chance" ao lado de "Sinais de bacteriose" confundia o produtor.
+ */
+export function riskLevel(probability: number): RiskLevel {
+  const p = Number.isFinite(probability) ? probability : 0;
+  if (p < RISK_THRESHOLD_MEDIUM) return 'baixo';
+  if (p <= RISK_THRESHOLD_HIGH) return 'medio';
+  return 'alto';
+}
 
 const SEVERITY_TO_STATE: Record<ApiSeverity, DiagnosisState> = {
   Leve: 'leve',
@@ -20,7 +36,14 @@ export class Diagnosis {
     readonly severity: ApiSeverity | null,
     /** Sem bacteriose, mas com sinais de outra doença (só no estado `sadia`). */
     readonly otherDisease: OtherDisease | null = null,
+    /** Probabilidade combinada sem arredondar (0–1), base do nível de risco. */
+    readonly probability: number = probabilityPercent / 100,
   ) {}
+
+  /** O que a tela principal mostra; a porcentagem fica em "Detalhes técnicos". */
+  get riskLevel(): RiskLevel {
+    return riskLevel(this.probability);
+  }
 
   get isHealthy(): boolean {
     return this.state === 'sadia' && this.otherDisease === null;
@@ -39,6 +62,7 @@ export class Diagnosis {
       a.modelProbability === null,
       a.severity,
       a.state === 'sadia' ? (a.otherDisease ?? null) : null,
+      clamp01(a.probability),
     );
   }
 }
@@ -72,5 +96,6 @@ export function mapPrediction(raw: PredictionResult): Diagnosis {
     raw.model_probability === null,
     healthy ? null : raw.severity,
     healthy ? (raw.other_disease ?? null) : null,
+    clamp01(raw.probability),
   );
 }
