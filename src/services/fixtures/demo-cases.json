@@ -1,0 +1,58 @@
+[
+  {
+    "id": "sadia",
+    "image": "/demo/folha-sadia.jpg",
+    "response": {
+      "probability": 0.022932623950832454,
+      "model_probability": null,
+      "hsv_probability": 0.022932623950832454,
+      "class": "Saudavel",
+      "ratio": 0.004586524790166491,
+      "severity": "Leve",
+      "processing_time_ms": 48,
+      "overlay": "/demo/folha-sadia-overlay.png"
+    }
+  },
+  {
+    "id": "leve",
+    "image": "/demo/folha-leve.jpg",
+    "response": {
+      "probability": 0.1139145810663765,
+      "model_probability": null,
+      "hsv_probability": 0.1139145810663765,
+      "class": "Infectado",
+      "ratio": 0.0227829162132753,
+      "severity": "Leve",
+      "processing_time_ms": 42,
+      "overlay": "/demo/folha-leve-overlay.png"
+    }
+  },
+  {
+    "id": "moderada",
+    "image": "/demo/folha-moderada.jpg",
+    "response": {
+      "probability": 0.39131427453154816,
+      "model_probability": null,
+      "hsv_probability": 0.39131427453154816,
+      "class": "Infectado",
+      "ratio": 0.07826285490630963,
+      "severity": "Moderada",
+      "processing_time_ms": 43,
+      "overlay": "/demo/folha-moderada-overlay.png"
+    }
+  },
+  {
+    "id": "grave",
+    "image": "/demo/folha-grave.jpg",
+    "response": {
+      "probability": 0.804487903155774,
+      "model_probability": null,
+      "hsv_probability": 0.804487903155774,
+      "class": "Infectado",
+      "ratio": 0.1608975806311548,
+      "severity": "Grave",
+      "processing_time_ms": 46,
+      "overlay": "/demo/folha-grave-overlay.png"
+    }
+  }
+]

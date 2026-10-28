@@ -1,0 +1,84 @@
+/* Espelho de src/ui/tokens.ts (verificado por src/ui/tokens.test.ts). */
+:root {
+  --color-green-50: #EFF8EC;
+  --color-green-100: #DAF0D4;
+  --color-green-200: #B5E1AB;
+  --color-green-300: #8ED07F;
+  --color-green-400: #6FC25F;
+  --color-green-500: #57B846;
+  --color-green-600: #43993A;
+  --color-green-700: #2F7A28;
+  --color-green-800: #24611F;
+  --color-green-900: #1A4716;
+
+  --color-amber-50: #FEF6E4;
+  --color-amber-100: #FCE9BF;
+  --color-amber-300: #F6CB6F;
+  --color-amber-500: #F2B134;
+  --color-amber-700: #946200;
+  --color-amber-800: #7A5100;
+
+  --color-orange-50: #FFF0E5;
+  --color-orange-100: #FFDCC2;
+  --color-orange-300: #F9A762;
+  --color-orange-500: #F07C1E;
+  --color-orange-700: #B04F00;
+  --color-orange-800: #943F00;
+
+  --color-red-50: #FFEDED;
+  --color-red-100: #FFD3D3;
+  --color-red-300: #FF9494;
+  --color-red-500: #FF5D5D;
+  --color-red-700: #C42B2B;
+  --color-red-800: #A11D1D;
+
+  --color-neutral-0: #FFFFFF;
+  --color-neutral-50: #F5F5F5;
+  --color-neutral-100: #EBEBEB;
+  --color-neutral-200: #DADADA;
+  --color-neutral-300: #C2C2C2;
+  --color-neutral-500: #767676;
+  --color-neutral-600: #5E5E5E;
+  --color-neutral-700: #484848;
+  --color-neutral-900: #1F1F1F;
+
+  --text-default: var(--color-neutral-700);
+  --text-muted: var(--color-neutral-600);
+  --text-on-primary: var(--color-neutral-0);
+  --surface-page: var(--color-neutral-50);
+  --surface-card: var(--color-neutral-0);
+  --surface-sunken: var(--color-neutral-100);
+  --border-default: var(--color-neutral-200);
+  --action-primary: var(--color-green-700);
+  --action-primary-pressed: var(--color-green-800);
+  --focus-ring: var(--color-green-900);
+
+  --font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-size-xs: 0.875rem;  /* 14 */
+  --font-size-sm: 1rem;      /* 16 */
+  --font-size-md: 1.125rem;  /* 18 — corpo */
+  --font-size-lg: 1.25rem;   /* 20 */
+  --font-size-xl: 1.5rem;    /* 24 */
+  --font-size-2xl: 1.875rem; /* 30 — título */
+  --font-size-3xl: 2.25rem;  /* 36 */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+
+  --radius-md: 12px;
+  --radius-pill: 999px;
+  --touch-target: 48px;
+
+  --shadow-card: 0 1px 2px rgb(31 31 31 / 0.06), 0 2px 8px rgb(31 31 31 / 0.05);
+  --shadow-raised: 0 4px 16px rgb(31 31 31 / 0.12);
+  --content-max: 640px;
+}
