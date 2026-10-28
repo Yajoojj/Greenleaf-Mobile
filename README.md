@@ -1,7 +1,7 @@
 # GreenLeaf — front-end (PWA)
 
 Web app **mobile-first e instalável** que fotografa uma folha de mandioca, envia ao módulo de IA
-**Axios Cassava IA** e mostra, em linguagem simples, se há sinais de **bacteriose**
+**GreenLeaf IA v2** ([Axios_Cassava_IA](https://github.com/Yajoojj/Axios_Cassava_IA), na Render) e mostra, em linguagem simples, se há sinais de **bacteriose**
 (*Xanthomonas phaseoli* pv. *manihotis*), com a área suspeita destacada.
 
 Projeto Integrador V — DSM, **FATEC Registro** (Vale do Ribeira, SP).
@@ -55,16 +55,33 @@ npm install
 npm run dev
 ```
 
-Abre em `http://localhost:5173`. Sem `VITE_API_URL`, o app usa o **serviço simulado** (selo "Resultado simulado").
+Abre em `http://localhost:5173`. Sem variáveis, o app usa o **serviço simulado** (selo "Resultado simulado") e
+contas/histórico **só no aparelho** — funciona exatamente como antes do back-end.
 
-Para usar a API real, crie `.env.local` a partir de `.env.example`:
+Para usar a IA e o back-end reais, crie `.env.local` a partir de `.env.example`:
 
 ```bash
 cp .env.example .env.local
 ```
 
-e defina `VITE_API_URL=https://<sua-api>`. Em desenvolvimento, `http://localhost:8000` também é aceito.
-No servidor, inclua a origem do app em `CORS_ORIGINS` (ex.: `http://localhost:5173,https://greenleaf.exemplo.app`).
+### Variáveis de ambiente (públicas — vão para o navegador)
+
+| Variável | Para quê | Sem ela |
+|---|---|---|
+| `VITE_API_URL` | IA v2 na Render (`https://greenleaf-ia.onrender.com`) | `MockPredictionService` (análise de cor local, "simulado") |
+| `VITE_SUPABASE_URL` | Projeto Supabase **do app** (`https://mfngcmjgisfgttsgqyfl.supabase.co`) | contas e histórico só no aparelho (mocks) |
+| `VITE_SUPABASE_ANON_KEY` | Chave **anônima/publicável** do mesmo projeto | idem |
+| `VITE_FEATURE_GEOLOCATION`, `VITE_FEATURE_HEATMAP` | Liga localização e mapa de calor | escondidos |
+
+A chave **service role** (ou `sb_secret_…`) nunca vai para o app: `checkSupabase` em `src/config/env.ts` a recusa se alguém
+a colocar por engano. Em desenvolvimento, `http://localhost:8000` é aceito para a IA; no servidor da IA, a origem do app
+precisa estar em `CORS_ORIGINS`.
+
+### Publicar (Vercel)
+
+No projeto da Vercel **do Greenleaf-Mobile** (não o do repositório da IA, que publica o front antigo em `frontend/`):
+Settings → Environment Variables → `VITE_API_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (Production e Preview) → Redeploy.
+A CSP de `vercel.json` e `public/_headers` já libera essas duas origens; se trocar de projeto ou serviço, troque lá também.
 
 Outros comandos:
 
@@ -75,14 +92,18 @@ Outros comandos:
 | `npm run build` | Build de produção com service worker e CSP |
 | `npm run preview` | Serve o build em `http://localhost:4173` (teste do PWA/offline) |
 | `node scripts/screenshots.mjs` | Regera os prints de `docs/prints` (com o `preview` rodando) |
-| `API_URL=https://... node scripts/record-demo.mjs` | Grava respostas reais da API para o modo demonstração |
+| `API_URL=https://... node scripts/record-demo.mjs` | Grava respostas reais da IA v2 para o modo demonstração |
+| `node scripts/supabase-e2e.mjs` | Teste ponta a ponta da RLS, do Storage e das edge functions no Supabase real |
 
-**Recursos futuros** (atrás de flag, desligados por padrão): `VITE_FEATURE_GEOLOCATION=true` mostra o
-consentimento de localização e `VITE_FEATURE_HEATMAP=true` mostra o mapa de calor com dados fictícios e etiqueta "Em breve".
+**Recursos atrás de flag** (desligados por padrão): `VITE_FEATURE_GEOLOCATION=true` mostra o consentimento de localização e
+`VITE_FEATURE_HEATMAP=true` mostra o mapa de calor — com o Supabase, só células agregadas (≥ 5 análises em ~5 km);
+sem ele, dados fictícios com a etiqueta "Em breve".
 
 ### Modo demonstração (apresentação e feira)
 
-Perfil → **Modo demonstração**. Quatro folhas de exemplo (sadia, leve, moderada, grave) com respostas gravadas.
+Perfil → **Modo demonstração**. Cinco folhas de exemplo com **respostas reais da IA v2** gravadas
+(`model_version`, 5 classes e overlay com o contorno amarelo), incluindo "Sem bacteriose — outra doença" (mosaico).
+Cada exemplo é rotulado pelo resultado real da IA (D-29). Demonstrações nunca vão para a nuvem.
 Tudo fica no cache do service worker: depois de abrir o app uma vez, funciona em **modo avião**.
 O selo "Demonstração" aparece no topo de todas as telas. Se uma análise real falhar por falta de internet, a tela de erro oferece "Usar modo demonstração".
 
@@ -93,67 +114,104 @@ Há uma tela "Instalar no celular" no app com o passo a passo e, quando o navega
 
 ## Arquitetura
 
+```mermaid
+flowchart LR
+  subgraph PWA[App PWA · Vercel]
+    P[pages/*] -->|useServices| I[[domain/services.ts<br/>interfaces]]
+    F[config/ServiceFactory] -->|cria| IMPL[implementações<br/>services/ e data/]
+    IMPL -. implementa .-> I
+    IDB[(IndexedDB<br/>histórico local + fila offline)]
+  end
+  IMPL -->|HTTPS · POST /predict · GET /health| IA[GreenLeaf IA v2<br/>FastAPI + ONNX · Render]
+  IMPL -->|HTTPS · chave anônima + JWT| SB[(Supabase do app<br/>Auth · Postgres com RLS · Storage leaves · edge functions)]
+  IMPL --> IDB
+  IA -. opcional, service role só no servidor .-> LOGS[(Supabase da IA<br/>prediction_logs)]
+```
+
+- **Dois Supabase separados.** O da IA (opcional) guarda só **logs técnicos** (`prediction_logs`), gravados pelo servidor com
+  service role. O **do app** (`greenleaf-app`, São Paulo) guarda o **histórico do usuário**. O app nunca fala com o primeiro, e a
+  tabela de logs não existe no segundo.
+- **Nenhuma tela importa implementação concreta** — `src/test/architecture.test.ts` (inclui `Supabase*`, `Cloud*`, `SessionAware*`).
+
 ```
 src/
   domain/    entidades, regras e contratos — sem React, sem rede
-             types.ts, schemas.ts (zod), Diagnosis.ts (mapPrediction), AnalysisBuilder.ts, errors.ts, services.ts (interfaces)
-  services/  implementações: HttpPredictionService, MockPredictionService, DemoPredictionService,
-             MockAuthService, BrowserLocationService, MockFeedbackService, BrowserImagePreparer, colorAnalysis
-  data/      LocalAnalysisRepository (IndexedDB)
-  config/    env.ts (VITE_API_URL validada + feature flags), ServiceFactory.ts (único lugar que instancia classes concretas)
-  app/       provedores (configurações, serviços, sessão, conta, avisos), layout e rotas
-  ui/        design system: tokens.ts/tokens.css, styles.css, componentes
-  pages/     telas (só conhecem as interfaces, via useServices())
-  i18n/      pt-BR (padrão) e en
-docs/        decisoes.md, seguranca-owasp.md, design-system.md, prints/
-scripts/     geração dos assets de demonstração, gravação de respostas reais, prints
+             types.ts, schemas.ts (zod), Diagnosis.ts (mapPrediction, riskLevel), AnalysisBuilder.ts, errors.ts, services.ts
+  services/  HttpPredictionService, Mock/DemoPredictionService, Mock/SupabaseAuthService, Mock/SupabaseFeedbackService,
+             Mock/SupabaseHeatmapService, BrowserLocationService, BrowserImagePreparer, supabaseClient.ts
+  data/      LocalAnalysisRepository (IndexedDB), CloudAnalysisRepository (Supabase),
+             SessionAwareAnalysisRepository (composição + fila), supabase.types.ts (gerado do banco)
+  config/    env.ts (URLs validadas + flags), ServiceFactory.ts (único lugar que instancia classes concretas)
+  app/       provedores, layout, rotas e HistorySyncPrompt (enviar o histórico local no primeiro login)
+  ui/ pages/ i18n/
+supabase/
+  migrations/  esquema, RLS, Storage e mapa de calor (versionadas)
+  functions/   delete-account, export-data (edge functions)
+  tests/       rls.test.sql
 ```
 
-```mermaid
-flowchart LR
-  P[pages/*] -->|useServices| I[[domain/services.ts<br/>interfaces]]
-  F[config/ServiceFactory] -->|cria| H[HttpPredictionService]
-  F --> M[MockPredictionService]
-  F --> D[DemoPredictionService]
-  F --> R[LocalAnalysisRepository]
-  F --> A[MockAuthService]
-  H -. implementa .-> I
-  M -. implementa .-> I
-  D -. implementa .-> I
-  R -. implementa .-> I
-  A -. implementa .-> I
-  H -->|HTTPS multipart image| API[(Axios Cassava IA<br/>POST /predict · GET /health)]
-```
+### Histórico: aparelho, nuvem e fila
 
-- **POO**: a camada de domínio e os serviços são classes TypeScript que implementam interfaces
-  (`PredictionService`, `AnalysisRepository`, `AuthService`, `LocationService`, `FeedbackService`, `ImagePreparer`).
-  Os componentes de UI são funcionais.
-- **Nenhuma tela importa implementação concreta** — verificado por `src/test/architecture.test.ts`.
-- **`mapPrediction`** (`src/domain/Diagnosis.ts`) é uma função pura com testes: `Saudavel` → Sadia ignorando a severidade;
-  `Infectado` → Leve/Moderada/Grave; probabilidade em % arredondada; `model_probability === null` → aviso "Análise feita apenas pela cor das manchas".
+| Situação | Onde a análise fica |
+|---|---|
+| Sem conta | Só no aparelho (IndexedDB), como antes |
+| Com conta e internet | Supabase: linha em `analyses` + fotos em `leaves/{user_id}/{id}/` + `locations` (se houver consentimento) |
+| Com conta e sem internet | Fila local por usuário; sobe sozinha ao reconectar. O `id` gerado no app evita duplicata |
+| Demonstração ou resultado simulado | Sempre só no aparelho |
+| Primeiro login com histórico local | O app pergunta "Enviar minhas análises deste aparelho para a conta?" |
 
-### Contrato da API (verificado no código do Axios Cassava IA)
+As telas recebem as fotos da nuvem como **URLs assinadas de 10 minutos** nos mesmos campos `imageDataUrl`/`overlayDataUrl`.
+
+### Contrato da IA v2
 
 `POST {VITE_API_URL}/predict` — `multipart/form-data`, campo `image`, JPEG/PNG, máx. 8 MB →
-`{ probability, model_probability|null, hsv_probability, class: "Infectado"|"Saudavel", ratio, severity: "Leve"|"Moderada"|"Grave", processing_time_ms, overlay }`.
-Erros `400`, `413`, `500` com `{ "detail": "..." }`. `GET /health` → `{ status, version, environment, model_loaded, supabase_logging }`.
-Toda resposta passa por validação de schema (zod) antes de chegar à tela.
+`{ probability, model_probability|null, hsv_probability, class, ratio, severity, processing_time_ms, overlay,
+other_disease?, diagnosis?: {code,label,probability}, class_probabilities?: {CBB,CBSD,CGM,CMD,Healthy}, model_version? }`.
+Erros `400`, `413` e `422` (foto pequena, escura ou estourada). `GET /health` também devolve `model_version`.
+Toda resposta passa por zod antes de chegar à tela. Contrato completo: `INTEGRACAO.md` no repositório da IA.
 
-## Mocks a substituir (prompt de back-end)
+**Risco em vez de porcentagem:** a tela principal mostra **Baixo** (< 0,26), **Médio** (0,26–0,60) ou **Alto** (> 0,60);
+a porcentagem e a classe mais provável ficam em "Detalhes técnicos" (D-27).
 
-| Interface | Implementação atual | Substituir por | Onde trocar |
-|---|---|---|---|
-| `PredictionService` | `MockPredictionService` (análise de cor local, sempre marcada "simulado") | `HttpPredictionService` — **já pronto**, basta definir `VITE_API_URL` | automático |
-| `AuthService` | `MockAuthService` (contas só neste navegador, senha com PBKDF2) | `SupabaseAuthService` (Supabase Auth) | `config/ServiceFactory.ts` |
-| `AnalysisRepository` | `LocalAnalysisRepository` (IndexedDB, offline) | manter como cache + `CloudAnalysisRepository` (Supabase, tabela `analise`) | `config/ServiceFactory.ts` |
-| `FeedbackService` | `MockFeedbackService` (guarda no aparelho) | endpoint/tabela de suporte | `config/ServiceFactory.ts` |
-| `LocationService` | `BrowserLocationService` (flag) | igual, enviando lat/long arredondadas para a tabela `localizacao` | `config/ServiceFactory.ts` |
-| Mapa de calor | dados fictícios em `pages/HeatmapPage.tsx` | consulta agregada por região | `pages/HeatmapPage.tsx` |
+## Back-end (Supabase)
 
-As telas não mudam: elas só falam com as interfaces de `src/domain/services.ts`.
+Projeto `greenleaf-app` (`mfngcmjgisfgttsgqyfl`, `sa-east-1`). Tabelas finais: [docs/diagrama-banco.md](docs/diagrama-banco.md).
+
+**Aplicar as migrações** (projeto novo ou outro ambiente), com a [CLI do Supabase](https://supabase.com/docs/guides/local-development):
+
+```bash
+npx supabase link --project-ref <ref-do-projeto>
+```
+
+```bash
+npx supabase db push
+```
+
+**Publicar as edge functions:**
+
+```bash
+npx supabase functions deploy delete-account
+```
+
+```bash
+npx supabase functions deploy export-data
+```
+
+Opcional: `npx supabase secrets set ALLOWED_ORIGINS=https://<dominio-do-app>` restringe o CORS das funções (sem ele, elas
+aceitam qualquer origem, mas sempre exigem o JWT do usuário).
+
+**Testar a RLS:** cole `supabase/tests/rls.test.sql` no SQL Editor (roda numa transação e termina com `ROLLBACK`) e rode
+`scripts/supabase-e2e.mjs` com dois usuários de teste (passo a passo em [docs/seguranca-owasp.md](docs/seguranca-owasp.md)).
+
+**Regerar os tipos** depois de mudar o esquema: `npx supabase gen types typescript --project-id <ref> > src/data/supabase.types.ts`.
+
+**Configuração de Auth (painel → Authentication):** e-mail e senha, confirmação de e-mail ligada, senha mínima **8**,
+*Site URL* e *Redirect URLs* com o domínio da Vercel, e SMTP próprio para produção (o SMTP padrão do Supabase só entrega
+para membros da organização e tem limite baixo). Ver D-25.
 
 ## Documentos
 
-- [docs/decisoes.md](docs/decisoes.md) — diário de bordo técnico: decisões e suposições.
+- [docs/decisoes.md](docs/decisoes.md) — diário de bordo técnico: decisões e suposições (back-end a partir de D-20).
+- [docs/diagrama-banco.md](docs/diagrama-banco.md) — diagrama de banco atualizado (tabelas finais do Supabase).
 - [docs/seguranca-owasp.md](docs/seguranca-owasp.md) — checklist de segurança (OWASP) com o que foi aplicado e onde.
 - [docs/design-system.md](docs/design-system.md) — tokens e componentes com nomes prontos para o Figma.
