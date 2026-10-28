@@ -49,7 +49,7 @@ export function fakeServices(patch: Partial<Services> = {}): Services {
     prediction: { predict: vi.fn().mockResolvedValue(prediction()), health: vi.fn().mockResolvedValue({ status: 'ok', version: 't', environment: 'test', model_loaded: true, supabase_logging: false }) },
     analyses: new LocalAnalysisRepository(new IDBFactory()),
     auth: { signUp: vi.fn(), signIn: vi.fn(), signOut: vi.fn().mockResolvedValue(undefined), currentUser: vi.fn().mockResolvedValue(null), deleteAccount: vi.fn() },
-    location: { requestConsent: vi.fn().mockResolvedValue(false), getPosition: vi.fn().mockResolvedValue(null), revokeConsent: vi.fn(), consentStatus: vi.fn().mockResolvedValue(false) },
+    location: { requestConsent: vi.fn().mockResolvedValue(false), getPosition: vi.fn().mockResolvedValue(null), revokeConsent: vi.fn().mockResolvedValue(undefined), consentStatus: vi.fn().mockResolvedValue(false) },
     feedback: { send: vi.fn().mockResolvedValue(undefined) },
     images: { validate: vi.fn(), prepare: vi.fn(async (b: Blob) => b), toDataUrl: vi.fn().mockResolvedValue('data:image/jpeg;base64,AA==') },
     predictionMode: 'api',

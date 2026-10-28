@@ -21,6 +21,23 @@ describe('mapPrediction', () => {
     expect(d.isHealthy).toBe(true);
   });
 
+  it('Saudavel + other_disease (servidor v2) → sadia, mas não "isHealthy"', () => {
+    const d = mapPrediction({ ...base, class: 'Saudavel', other_disease: 'CMD' });
+    expect(d.state).toBe('sadia');
+    expect(d.otherDisease).toBe('CMD');
+    expect(d.isHealthy).toBe(false);
+  });
+
+  it('other_disease é ignorado quando há bacteriose', () => {
+    expect(mapPrediction({ ...base, other_disease: 'CMD' }).otherDisease).toBeNull();
+  });
+
+  it('resposta do servidor antigo (sem campos v2) continua funcionando', () => {
+    const d = mapPrediction({ ...base, class: 'Saudavel' });
+    expect(d.otherDisease).toBeNull();
+    expect(d.isHealthy).toBe(true);
+  });
+
   it('Saudavel ignora qualquer severidade, mesmo Grave', () => {
     expect(mapPrediction({ ...base, class: 'Saudavel', severity: 'Grave' }).state).toBe('sadia');
   });

@@ -27,6 +27,8 @@ export class AnalysisBuilder {
       processingTimeMs: result.processing_time_ms,
       imageDataUrl,
       overlayDataUrl: result.overlay,
+      otherDisease: diagnosis.otherDisease,
+      modelVersion: result.model_version ?? null,
       source,
       simulated,
     };

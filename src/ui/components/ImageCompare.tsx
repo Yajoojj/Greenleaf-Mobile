@@ -3,8 +3,11 @@ import { useState } from 'react';
 import { useI18n } from '../../i18n';
 import { SegmentedControl } from './SegmentedControl';
 
-/** Figma: ImageCompare — alterna foto original e área destacada, com legenda. */
-export function ImageCompare({ original, overlay }: { original: string; overlay: string }) {
+/**
+ * Figma: ImageCompare — alterna foto original e área destacada, com legenda.
+ * `attention`: o overlay do servidor v2 traz em amarelo o contorno da região que mais pesou para a IA.
+ */
+export function ImageCompare({ original, overlay, attention = false }: { original: string; overlay: string; attention?: boolean }) {
   const { t } = useI18n();
   const [view, setView] = useState<'overlay' | 'original'>('overlay');
   return (
@@ -35,6 +38,12 @@ export function ImageCompare({ original, overlay }: { original: string; overlay:
             <span className="gl-legend__swatch" style={{ background: 'rgb(255 93 93)' }} aria-hidden="true" />
             {t('result.legend.lesion')}
           </span>
+          {attention && (
+            <span className="gl-legend__item">
+              <span className="gl-legend__swatch" style={{ background: 'transparent', border: '3px solid rgb(242 177 52)' }} aria-hidden="true" />
+              {t('result.legend.attention')}
+            </span>
+          )}
         </figcaption>
       )}
     </figure>

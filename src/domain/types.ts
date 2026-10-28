@@ -7,6 +7,9 @@ export const DIAGNOSIS_STATES: readonly DiagnosisState[] = ['sadia', 'leve', 'mo
 export type ApiClass = 'Infectado' | 'Saudavel';
 export type ApiSeverity = 'Leve' | 'Moderada' | 'Grave';
 
+/** Outras doenças que o modelo v2 (5 classes do Kaggle Cassava) reconhece. */
+export type OtherDisease = 'CBSD' | 'CGM' | 'CMD';
+
 /** Corpo de `POST /predict` (backend/main.py). */
 export interface PredictionResult {
   probability: number;
@@ -17,6 +20,12 @@ export interface PredictionResult {
   severity: ApiSeverity;
   processing_time_ms: number;
   overlay: string;
+  /**
+   * Extras do servidor GreenLeaf IA v2 (opcionais: o servidor antigo, o mock e a demonstração não mandam).
+   * `other_disease`: bacteriose descartada, mas a folha tem sinais de outra doença.
+   */
+  other_disease?: OtherDisease | null;
+  model_version?: string | null;
 }
 
 /** Corpo de `GET /health`. */
@@ -53,6 +62,9 @@ export interface Analysis {
   processingTimeMs: number;
   imageDataUrl: string;
   overlayDataUrl: string;
+  /** Outra doença provável quando a bacteriose foi descartada (servidor v2). */
+  otherDisease?: OtherDisease | null;
+  modelVersion?: string | null;
   latitude?: number;
   longitude?: number;
   /** Extra do front: origem da foto (demonstração aparece marcada). */

@@ -18,6 +18,25 @@ describe('predictionResultSchema', () => {
     expect(predictionResultSchema.safeParse(valid).success).toBe(true);
   });
 
+  it('aceita a resposta do servidor v2 e descarta campos extras que o app não usa', () => {
+    const r = predictionResultSchema.safeParse({
+      ...valid,
+      class: 'Saudavel',
+      overlay: 'data:image/jpeg;base64,/9j/4AAQ',
+      other_disease: 'CMD',
+      model_version: 'greenleaf_effb0-2026-10-28',
+      diagnosis: { code: 'CMD', label: 'Mosaico (CMD)', probability: 0.9 },
+      class_probabilities: { CBB: 0.02, CBSD: 0.03, CGM: 0.03, CMD: 0.9, Healthy: 0.02 },
+    });
+    expect(r.success).toBe(true);
+    expect(r.success && r.data.other_disease).toBe('CMD');
+    expect(r.success && 'class_probabilities' in r.data).toBe(false);
+  });
+
+  it('rejeita other_disease desconhecida', () => {
+    expect(predictionResultSchema.safeParse({ ...valid, other_disease: 'CBB' }).success).toBe(false);
+  });
+
   it('as respostas gravadas da demonstração seguem o contrato (com overlay em data URL)', () => {
     for (const c of cases) {
       const r = predictionResultSchema.safeParse({ ...c.response, overlay: valid.overlay });
