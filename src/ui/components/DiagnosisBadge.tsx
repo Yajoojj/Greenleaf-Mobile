@@ -10,14 +10,18 @@ export const DIAGNOSIS_ICON: Record<DiagnosisState, LucideIcon> = {
   grave: OctagonAlert,
 };
 
-/** Figma: DiagnosisBadge / {Sadia|Leve|Moderada|Grave} / {Small|Large} */
-export function DiagnosisBadge({ state, size = 'sm' }: { state: DiagnosisState; size?: 'sm' | 'lg' }) {
+/**
+ * Figma: DiagnosisBadge / {Sadia|Leve|Moderada|Grave} / {Small|Large}
+ * `otherDisease`: sem bacteriose, mas com outra doença — o texto vira "Sem bacteriose" em vez de "Sadia".
+ */
+export function DiagnosisBadge({ state, size = 'sm', otherDisease = false }: { state: DiagnosisState; size?: 'sm' | 'lg'; otherDisease?: boolean }) {
   const { t } = useI18n();
-  const Icon = DIAGNOSIS_ICON[state];
+  const other = otherDisease && state === 'sadia';
+  const Icon = other ? CircleAlert : DIAGNOSIS_ICON[state];
   return (
     <span className={`gl-diagnosis-badge gl-tone--${state}${size === 'lg' ? ' gl-diagnosis-badge--lg' : ''}`}>
       <Icon aria-hidden="true" size={size === 'lg' ? 30 : 20} strokeWidth={2.5} />
-      <span>{t(`state.${state}`)}</span>
+      <span>{other ? t('state.semBacteriose') : t(`state.${state}`)}</span>
     </span>
   );
 }
