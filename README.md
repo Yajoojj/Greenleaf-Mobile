@@ -83,6 +83,19 @@ No projeto da Vercel **do Greenleaf-Mobile** (não o do repositório da IA, que 
 Settings → Environment Variables → `VITE_API_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (Production e Preview) → Redeploy.
 A CSP de `vercel.json` e `public/_headers` já libera essas duas origens; se trocar de projeto ou serviço, troque lá também.
 
+### No ar
+
+| Parte | Onde | Endereço |
+|---|---|---|
+| App (PWA) | Vercel, projeto `greenleaf-mobile` | https://greenleaf-mobile.vercel.app |
+| IA v2 | Render, serviço `greenleaf-ia` (plano gratuito) | https://greenleaf-ia.onrender.com (`/health`) |
+| Back-end | Supabase, projeto `greenleaf-app` (São Paulo) | `https://mfngcmjgisfgttsgqyfl.supabase.co` |
+
+**IA acordada:** no plano gratuito a Render desliga o serviço depois de ~15 min sem uso, e a primeira análise depois disso
+demora até 1 minuto. Uma tarefa no [cron-job.org](https://cron-job.org) ("GreenLeaf IA – manter acordada") chama
+`GET /health` a cada 10 minutos para evitar isso; as 750 h grátis por mês da Render cobrem um serviço ligado o tempo todo.
+Se a tarefa parar, o app continua funcionando: ao abrir, ele mesmo chama `/health` e mostra "Servidor acordando" (D-34).
+
 Outros comandos:
 
 | Comando | O que faz |
