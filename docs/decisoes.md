@@ -206,6 +206,17 @@ A CSP do `<meta>` é montada no build a partir de `VITE_API_URL` e `VITE_SUPABAS
 `classProbabilities` e `topClass`. As 5 probabilidades vão para `analyses.class_probabilities` na nuvem. O nome da classe é
 traduzido no app pelo código (`class.CBB`…), porque o `label` do servidor vem só em português.
 
+### D-33 App publicado na Vercel
+Projeto **`greenleaf-mobile`** (time `yajoojjs-projects`, plano Hobby), ligado ao repositório `Yajoojj/Greenleaf-Mobile`.
+Endereço: **https://greenleaf-mobile.vercel.app**, o mesmo já usado em `CORS_ORIGINS` (D-21) e na CSP (D-31), então nada
+precisou mudar na Render. Variáveis em Production e Preview: `VITE_API_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
+(tipo *config*: a chave anônima é pública por definição; quem protege os dados é a RLS) e as duas flags **ligadas**
+(`VITE_FEATURE_GEOLOCATION`, `VITE_FEATURE_HEATMAP`), porque agora a localização tem consentimento no banco e o mapa só mostra
+agregado (D-23). O plugin da Vercel não tinha acesso ao time, então o projeto foi criado e publicado pela CLI já logada.
+Como a `main` ainda não tem a integração, a primeira versão de produção foi publicada **a partir desta branch**
+(`vercel deploy --prod`); depois do merge do PR #2, cada push na `main` publica sozinho. Verificado no endereço publicado:
+CSP sem erro, `POST /predict` (2,6 s) e `heatmap_cells` respondendo a partir da origem da Vercel.
+
 ## Modelo para próximos registros
 
 | Data | Atividades realizadas | Dificuldades / decisões | Responsável |
