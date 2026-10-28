@@ -1,11 +1,11 @@
-import { ChevronDown, Info, ListChecks, ShieldAlert } from 'lucide-react';
+import { ChevronDown, Info, ListChecks, ShieldAlert, TriangleAlert } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Diagnosis } from '../../domain/Diagnosis';
 import type { Analysis } from '../../domain/types';
 import { useI18n, type MessageKey } from '../../i18n';
 import { DiagnosisBadge, ImageCompare, SeverityScale } from '../../ui';
 
-const TODO_COUNT = { sadia: 3, leve: 4, moderada: 4, grave: 4 } as const;
+const TODO_COUNT = { sadia: 3, leve: 4, moderada: 4, grave: 4, other: 3 } as const;
 
 /**
  * Figma: DiagnosisCard — estado, chance, área com manchas, imagem com overlay,
@@ -27,18 +27,29 @@ export function DiagnosisView({
   const { t, formatNumber, formatDate } = useI18n();
   const d = Diagnosis.fromAnalysis(analysis);
   const s = d.state;
+  // Sem bacteriose, mas com outra doença: textos próprios no lugar dos de "sadia".
+  const texts = d.otherDisease ? 'other' : s;
 
   return (
     <>
       <section className={`gl-diagnosis-head gl-tone--${s}`} aria-labelledby="dx-title">
         <div className="gl-row" style={{ justifyContent: 'space-between' }}>
           <h1 id="dx-title" className="visually-hidden">{t('result.title')}</h1>
-          <DiagnosisBadge state={s} size="lg" />
+          <DiagnosisBadge state={s} size="lg" otherDisease={d.otherDisease !== null} />
           {badges}
         </div>
-        <p className="gl-diagnosis-head__summary">{t(`result.summary.${s}`)}</p>
+        <p className="gl-diagnosis-head__summary">{t(`result.summary.${texts}`)}</p>
         <SeverityScale state={s} />
       </section>
+
+      {d.otherDisease && (
+        <section className="gl-card gl-tone--leve" aria-labelledby="dx-other">
+          <h2 id="dx-other" className="gl-card__title">
+            <TriangleAlert size={22} aria-hidden="true" /> {t('result.other.title')}
+          </h2>
+          <p>{t('result.other.text', { disease: t(`disease.${d.otherDisease}`) })}</p>
+        </section>
+      )}
 
       <section className="gl-stack gl-stack--sm" aria-label={t('result.chance')}>
         <div className="gl-metrics">
@@ -62,13 +73,13 @@ export function DiagnosisView({
         )}
       </section>
 
-      <ImageCompare original={analysis.imageDataUrl} overlay={analysis.overlayDataUrl} />
+      <ImageCompare original={analysis.imageDataUrl} overlay={analysis.overlayDataUrl} attention={Boolean(analysis.modelVersion)} />
 
       <section className="gl-card" aria-labelledby="dx-meaning">
         <h2 id="dx-meaning" className="gl-card__title">
           <Info size={22} aria-hidden="true" color="var(--color-green-700)" /> {t('result.meaning')}
         </h2>
-        <p>{t(`result.meaning.${s}`)}</p>
+        <p>{t(`result.meaning.${texts}`)}</p>
         {d.colorOnly && <p className="gl-small gl-muted">{t('result.colorOnlyMore')}</p>}
       </section>
 
@@ -77,10 +88,10 @@ export function DiagnosisView({
           <ListChecks size={22} aria-hidden="true" color="var(--color-green-700)" /> {t('result.todo')}
         </h2>
         <ul className="gl-tips">
-          {Array.from({ length: TODO_COUNT[s] }, (_, i) => (
+          {Array.from({ length: TODO_COUNT[texts] }, (_, i) => (
             <li key={i}>
               <span aria-hidden="true" style={{ fontWeight: 700, color: 'var(--color-green-800)', minWidth: 18 }}>{i + 1}.</span>
-              {t(`result.todo.${s}.${i + 1}` as MessageKey)}
+              {t(`result.todo.${texts}.${i + 1}` as MessageKey)}
             </li>
           ))}
         </ul>
@@ -103,6 +114,12 @@ export function DiagnosisView({
             <dd>{analysis.modelProbability === null ? t('result.details.na') : `${Math.round(analysis.modelProbability * 100)}%`}</dd>
             <dt>{t('result.details.hsv')}</dt>
             <dd>{Math.round(analysis.hsvProbability * 100)}%</dd>
+            {analysis.modelVersion && (
+              <>
+                <dt>{t('result.details.version')}</dt>
+                <dd>{analysis.modelVersion}</dd>
+              </>
+            )}
             <dt>{t('result.details.time')}</dt>
             <dd>{analysis.processingTimeMs} ms</dd>
             <dt>{t('result.details.date')}</dt>

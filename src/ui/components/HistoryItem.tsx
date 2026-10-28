@@ -11,7 +11,7 @@ export function HistoryItem({ analysis }: { analysis: Analysis }) {
     <Link to={`/historico/${encodeURIComponent(analysis.id)}`} className="gl-history-item">
       <img className="gl-history-item__thumb" src={analysis.imageDataUrl} alt="" loading="lazy" />
       <span className="gl-history-item__body">
-        <DiagnosisBadge state={analysis.state} />
+        <DiagnosisBadge state={analysis.state} otherDisease={Boolean(analysis.otherDisease)} />
         <span className="gl-history-item__date">
           {formatDate(analysis.createdAt)}
           {analysis.source === 'demo' && ` · ${t('history.demoTag')}`}

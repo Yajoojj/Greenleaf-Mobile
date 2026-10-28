@@ -69,6 +69,18 @@ describe('DiagnosisView', () => {
     const { container } = renderPage(<DiagnosisView analysis={analysis()} />);
     expect(await axeViolations(container)).toEqual([]);
   });
+
+  it('servidor v2: sem bacteriose mas com outra doença não diz "sadia"', async () => {
+    const a = analysis({ state: 'sadia', severity: null, otherDisease: 'CMD', modelVersion: 'greenleaf_effb0-test' });
+    const { container } = renderPage(<DiagnosisView analysis={a} />);
+    expect(screen.queryByText('A folha parece sadia.')).toBeNull();
+    expect(screen.getByText('Sem sinais de bacteriose, mas a folha tem sinais de outra doença.')).toBeInTheDocument();
+    expect(screen.getByText('Sem bacteriose')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Possível outra doença/ })).toBeInTheDocument();
+    expect(screen.getByText(/mosaico da mandioca/)).toBeInTheDocument();
+    expect(screen.getByText('Onde a IA olhou')).toBeInTheDocument();
+    expect(await axeViolations(container)).toEqual([]);
+  });
 });
 
 /** Coloca um resultado na sessão antes de abrir a tela. */
