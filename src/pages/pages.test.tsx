@@ -81,7 +81,7 @@ describe('DiagnosisView', () => {
     expect(screen.getByText('Sem bacteriose')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Possível outra doença/ })).toBeInTheDocument();
     expect(screen.getByText(/mosaico da mandioca/)).toBeInTheDocument();
-    expect(screen.getByText('Onde a IA olhou')).toBeInTheDocument();
+    expect(screen.getByText('Região que mais pesou na decisão (aproximada)')).toBeInTheDocument();
     expect(await axeViolations(container)).toEqual([]);
   });
 });
