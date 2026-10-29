@@ -315,8 +315,6 @@ export const en: Messages = {
   'profile.about': 'About the project',
   'profile.about.body': 'GreenLeaf is the Integrated Project V of the Multiplatform Software Development course at FATEC Registro (Ribeira Valley, SP, Brazil).',
   'profile.about.team': 'Team',
-  'profile.about.mentor': 'Advisor: Prof. Yuri Moreira',
-  'profile.about.ai': 'AI module: Axios Cassava IA',
   'profile.about.version': 'Version {v}',
   'profile.server': 'Analysis server',
   'profile.server.mode': 'Mode',
