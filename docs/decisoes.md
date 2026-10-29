@@ -226,6 +226,15 @@ sensível). As 750 h/mês grátis da Render cobrem um serviço ligado 24 h. Não
 atrasa e o GitHub desliga agendamentos de repositórios parados. O app não depende disso: `useServerStatus` já chama `/health`
 ao abrir e mostra "Servidor acordando". Se o app passar a ter uso real, trocar pelo plano pago e desativar a tarefa.
 
+### D-35 Overlay corrigido na IA (issue #7)
+A IA corrigiu o overlay (`Yajoojj/Axios_Cassava_IA` 2fcfe92, fecha a issue #7): a folha analisada é isolada do fundo
+(componente verde que mais cobre a região de decisão), as manchas só contam nela ou numa faixa de 3% em volta, o contorno
+amarelo é recortado pela folha e os cantos do mapa 8x8 deixaram de gerar arcos. **Mesmo modelo** (`greenleaf_effb0-2026-10-28`)
+e **mesmo contrato**: o app não precisou de mudança de código. A Render não publicou sozinha (auto-deploy ligado, mas o push não
+disparou), então o deploy foi feito pelo plugin em 29/10/2026. Demonstração regravada: diagnóstico, probabilidade e severidade
+iguais nos 5 casos; só o overlay do mosaico mudou (razão 0,083 → 0,074), porque as ilustrações 1 a 4 têm fundo liso. O texto
+de "Saiba mais" diz agora que o vermelho conta só a folha analisada e que, em mato denso, ainda pode marcar folhagem seca.
+
 ## Modelo para próximos registros
 
 | Data | Atividades realizadas | Dificuldades / decisões | Responsável |
