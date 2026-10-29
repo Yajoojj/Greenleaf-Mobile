@@ -14,7 +14,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export function SupportPage() {
   const { t } = useI18n();
-  const { feedback } = useServices();
+  const { feedback, accountMode } = useServices();
   const { user } = useAuth();
   const [rating, setRating] = useState<number | undefined>();
   const [topic, setTopic] = useState<Feedback['topic']>('duvida');
@@ -65,7 +65,7 @@ export function SupportPage() {
             </Button>
           }
         >
-          {t('support.sentBody')}
+          {t(accountMode === 'cloud' ? 'support.sentBody.cloud' : 'support.sentBody')}
         </StatusMessage>
       </>
     );

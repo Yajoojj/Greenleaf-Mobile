@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Diagnosis, mapPrediction, toPercent, toRatioPercent } from './Diagnosis';
+import { Diagnosis, mapPrediction, riskLevel, toPercent, toRatioPercent } from './Diagnosis';
 import type { PredictionResult } from './types';
 
 const base: PredictionResult = {
@@ -90,5 +90,34 @@ describe('conversões', () => {
     expect(d.probabilityPercent).toBe(11);
     expect(d.ratioPercent).toBe(2.2);
     expect(d.colorOnly).toBe(true);
+  });
+});
+
+describe('riskLevel (nível de risco no lugar da porcentagem)', () => {
+  it('faixas: < 0,26 baixo; 0,26–0,60 médio; > 0,60 alto', () => {
+    expect(riskLevel(0)).toBe('baixo');
+    expect(riskLevel(0.2599)).toBe('baixo');
+    expect(riskLevel(0.26)).toBe('medio');
+    expect(riskLevel(0.33)).toBe('medio');
+    expect(riskLevel(0.6)).toBe('medio');
+    expect(riskLevel(0.6001)).toBe('alto');
+    expect(riskLevel(1)).toBe('alto');
+    expect(riskLevel(Number.NaN)).toBe('baixo');
+  });
+
+  it('usa a probabilidade sem arredondar: 0,255 é baixo mesmo virando "26%"', () => {
+    const d = mapPrediction({ ...base, class: 'Saudavel', severity: 'Leve', probability: 0.255 });
+    expect(d.probabilityPercent).toBe(26);
+    expect(d.riskLevel).toBe('baixo');
+  });
+
+  it('"33% de chance" com sinais de bacteriose aparece como risco médio', () => {
+    const d = mapPrediction({ ...base, class: 'Infectado', severity: 'Leve', probability: 0.33 });
+    expect(d.state).toBe('leve');
+    expect(d.riskLevel).toBe('medio');
+  });
+
+  it('o histórico chega ao mesmo nível', () => {
+    expect(Diagnosis.fromAnalysis({ state: 'grave', probability: 0.81, ratio: 0.2, modelProbability: 0.8, severity: 'Grave' }).riskLevel).toBe('alto');
   });
 });

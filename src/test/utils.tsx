@@ -51,6 +51,8 @@ export function fakeServices(patch: Partial<Services> = {}): Services {
     auth: { signUp: vi.fn(), signIn: vi.fn(), signOut: vi.fn().mockResolvedValue(undefined), currentUser: vi.fn().mockResolvedValue(null), deleteAccount: vi.fn() },
     location: { requestConsent: vi.fn().mockResolvedValue(false), getPosition: vi.fn().mockResolvedValue(null), revokeConsent: vi.fn().mockResolvedValue(undefined), consentStatus: vi.fn().mockResolvedValue(false) },
     feedback: { send: vi.fn().mockResolvedValue(undefined) },
+    heatmap: { simulated: true, cells: vi.fn().mockResolvedValue([]) },
+    accountMode: 'local',
     images: { validate: vi.fn(), prepare: vi.fn(async (b: Blob) => b), toDataUrl: vi.fn().mockResolvedValue('data:image/jpeg;base64,AA==') },
     predictionMode: 'api',
     ...patch,
