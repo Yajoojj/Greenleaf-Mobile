@@ -13,7 +13,6 @@ import { usePageTitle } from './parts/usePageTitle';
 
 const TEAM = [
   'Carlos Eduardo Campos Takeshita',
-  'Marcelo Augusto Pedroso Martins',
   'Yago Uran Kurashiki Rios',
 ];
 
@@ -185,8 +184,6 @@ export function ProfilePage() {
           <ul style={{ margin: 0, paddingLeft: '1.2em' }}>
             {TEAM.map((n) => <li key={n}>{n}</li>)}
           </ul>
-          <p className="gl-small">{t('profile.about.mentor')}</p>
-          <p className="gl-small">{t('profile.about.ai')}</p>
           <p className="gl-small gl-muted">{t('profile.about.version', { v: env.version })}</p>
         </div>
       </section>
