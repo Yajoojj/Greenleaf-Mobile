@@ -314,8 +314,6 @@ export const ptBR = {
   'profile.about': 'Sobre o projeto',
   'profile.about.body': 'O GreenLeaf é o Projeto Integrador V do curso de Desenvolvimento de Software Multiplataforma da FATEC Registro (Vale do Ribeira, SP).',
   'profile.about.team': 'Equipe',
-  'profile.about.mentor': 'Orientação: Prof. Yuri Moreira',
-  'profile.about.ai': 'Módulo de IA: Axios Cassava IA',
   'profile.about.version': 'Versão {v}',
   'profile.server': 'Servidor de análise',
   'profile.server.mode': 'Modo',
