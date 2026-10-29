@@ -6,24 +6,30 @@ import { readFileSync } from 'node:fs';
 
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8')) as { version: string };
 
+function originOf(url: string | undefined): string {
+  try {
+    return url ? new URL(url).origin : '';
+  } catch {
+    return '';
+  }
+}
+
 /**
  * Content Security Policy injetada só no build (o dev server do Vite precisa de scripts inline).
- * connect-src libera apenas a origem da API configurada.
+ * connect-src libera apenas a origem da API de IA e a do Supabase; img-src, só o Supabase
+ * (URLs assinadas das fotos do histórico na nuvem). Sem diretivas inseguras.
  */
-function contentSecurityPolicy(apiUrl: string | undefined): Plugin {
-  let apiOrigin = '';
-  try {
-    if (apiUrl) apiOrigin = new URL(apiUrl).origin;
-  } catch {
-    apiOrigin = '';
-  }
+function contentSecurityPolicy(apiUrl: string | undefined, supabaseUrl: string | undefined): Plugin {
+  const apiOrigin = originOf(apiUrl);
+  const supabaseOrigin = originOf(supabaseUrl);
+  const extra = (...origins: string[]) => origins.filter(Boolean).map((o) => ` ${o}`).join('');
   const csp = [
     "default-src 'self'",
     "script-src 'self'",
     "style-src 'self'",
-    "img-src 'self' data: blob:",
+    `img-src 'self' data: blob:${extra(supabaseOrigin)}`,
     "font-src 'self'",
-    `connect-src 'self'${apiOrigin ? ` ${apiOrigin}` : ''}`,
+    `connect-src 'self'${extra(apiOrigin, supabaseOrigin)}`,
     "media-src 'self' blob:",
     "worker-src 'self'",
     "manifest-src 'self'",
@@ -47,7 +53,7 @@ export default defineConfig(({ mode }) => {
     build: { sourcemap: false, target: 'es2021' },
     plugins: [
       react(),
-      contentSecurityPolicy(env.VITE_API_URL),
+      contentSecurityPolicy(env.VITE_API_URL, env.VITE_SUPABASE_URL),
       VitePWA({
         registerType: 'prompt',
         injectRegister: false,

@@ -45,6 +45,29 @@ export interface FeedbackService {
   send(feedback: Feedback): Promise<void>;
 }
 
+/** Célula do mapa de calor: só dados agregados (centro de uma grade de ~5 km). */
+export interface HeatmapCell {
+  latitude: number;
+  longitude: number;
+  total: number;
+  /** Análises com bacteriose na célula. */
+  infected: number;
+}
+
+export interface HeatmapService {
+  /** `true` quando os dados são fictícios (a tela mostra a etiqueta "dados fictícios"). */
+  readonly simulated: boolean;
+  cells(): Promise<HeatmapCell[]>;
+}
+
+/** Histórico deste aparelho que pode subir para a conta (primeiro login). Demonstrações nunca sobem. */
+export interface HistorySync {
+  /** Quantas análises locais (não de demonstração) podem ser enviadas para a conta logada. */
+  pendingLocal(): Promise<number>;
+  /** Envia essas análises para a conta e as tira do aparelho. Devolve quantas foram enviadas. */
+  uploadLocal(): Promise<number>;
+}
+
 /** Preparação da foto no aparelho (validar, girar, reduzir, remover EXIF). */
 export interface ImagePreparer {
   validate(file: Blob): void;
@@ -59,6 +82,11 @@ export interface Services {
   location: LocationService;
   feedback: FeedbackService;
   images: ImagePreparer;
+  heatmap: HeatmapService;
+  /** Só existe com o back-end real (Supabase). */
+  historySync?: HistorySync;
+  /** `cloud`: contas e histórico no Supabase; `local`: mocks, tudo só no aparelho. Escolhe os textos certos. */
+  accountMode: 'cloud' | 'local';
   /** Qual implementação de predição está ativa (para selos e textos de status). */
   predictionMode: 'api' | 'mock' | 'demo';
 }

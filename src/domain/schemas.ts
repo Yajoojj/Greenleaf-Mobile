@@ -2,6 +2,9 @@ import { z } from 'zod';
 import type { HealthStatus, PredictionResult } from './types';
 
 const unit = z.number().finite().min(0).max(1);
+const modelClass = z.enum(['CBB', 'CBSD', 'CGM', 'CMD', 'Healthy']);
+
+export const classProbabilitiesSchema = z.object({ CBB: unit, CBSD: unit, CGM: unit, CMD: unit, Healthy: unit });
 
 /**
  * O overlay é exibido em <img>; aceitamos somente data URL de PNG/JPEG em base64
@@ -18,10 +21,11 @@ export const predictionResultSchema = z.object({
   severity: z.enum(['Leve', 'Moderada', 'Grave']),
   processing_time_ms: z.number().finite().min(0),
   overlay: z.string().max(16_000_000).regex(IMAGE_DATA_URL, 'overlay inválido'),
-  // Extras do servidor v2. Opcionais para continuar aceitando o servidor antigo;
-  // os demais campos novos (`diagnosis`, `class_probabilities`) são descartados pelo zod.
+  // Extras do servidor v2. Opcionais para continuar aceitando o servidor antigo, o mock e a demonstração.
   other_disease: z.enum(['CBSD', 'CGM', 'CMD']).nullable().optional(),
   model_version: z.string().max(80).nullable().optional(),
+  diagnosis: z.object({ code: modelClass, label: z.string().max(80), probability: unit }).nullable().optional(),
+  class_probabilities: classProbabilitiesSchema.nullable().optional(),
 }) satisfies z.ZodType<PredictionResult>;
 
 export const healthStatusSchema = z.object({
@@ -30,6 +34,7 @@ export const healthStatusSchema = z.object({
   environment: z.string().max(50),
   model_loaded: z.boolean(),
   supabase_logging: z.boolean(),
+  model_version: z.string().max(80).nullable().optional(),
 }) satisfies z.ZodType<HealthStatus>;
 
 export function isImageDataUrl(value: string): boolean {

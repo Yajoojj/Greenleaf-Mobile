@@ -33,7 +33,7 @@ describe('arquitetura', () => {
   });
 
   it('somente config/ServiceFactory instancia classes concretas', () => {
-    const concrete = /new (Http|Mock|Demo|Local|Browser|Disabled)\w*(Service|Repository|Preparer)\(/;
+    const concrete = /new (Http|Mock|Demo|Local|Browser|Disabled|Supabase|Cloud|SessionAware)\w*(Service|Repository|Preparer)\(|createSupabase\(/;
     const offenders = files(SRC)
       .filter((f) => !f.includes('ServiceFactory') && !/[\\/](services|data|test)[\\/]/.test(f))
       .filter((f) => concrete.test(readFileSync(f, 'utf-8')));

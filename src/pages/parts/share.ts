@@ -1,6 +1,6 @@
 import type { Analysis } from '../../domain/types';
 import type { Translate } from '../../i18n';
-import { toPercent } from '../../domain/Diagnosis';
+import { riskLevel } from '../../domain/Diagnosis';
 
 /** Converte data URL em Blob sem fetch (a CSP não libera connect-src para data:). */
 export function dataUrlToBlob(dataUrl: string): Blob {
@@ -14,7 +14,8 @@ export function dataUrlToBlob(dataUrl: string): Blob {
 
 /** Compartilha o resumo (e a imagem destacada, quando o aparelho permite). */
 export async function shareAnalysis(a: Analysis, t: Translate): Promise<'shared' | 'copied' | 'failed'> {
-  const text = t('result.shareText', { state: t(`state.${a.state}`), p: toPercent(a.probability) });
+  const state = a.state === 'sadia' && a.otherDisease ? t('state.semBacteriose') : t(`state.${a.state}`);
+  const text = t('result.shareText', { state, risk: t(`risk.${riskLevel(a.probability)}`).toLowerCase() });
   try {
     if (navigator.share) {
       let files: File[] | undefined;

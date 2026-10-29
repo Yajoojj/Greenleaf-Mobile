@@ -10,6 +10,21 @@ export type ApiSeverity = 'Leve' | 'Moderada' | 'Grave';
 /** Outras doenças que o modelo v2 (5 classes do Kaggle Cassava) reconhece. */
 export type OtherDisease = 'CBSD' | 'CGM' | 'CMD';
 
+/** As 5 classes do modelo v2 (Kaggle Cassava Leaf Disease). */
+export type ModelClass = 'CBB' | OtherDisease | 'Healthy';
+export const MODEL_CLASSES: readonly ModelClass[] = ['CBB', 'CBSD', 'CGM', 'CMD', 'Healthy'];
+export type ClassProbabilities = Record<ModelClass, number>;
+
+/** Classe mais provável entre as 5 (`diagnosis` do servidor v2). */
+export interface TopClass {
+  code: ModelClass;
+  label: string;
+  probability: number;
+}
+
+/** Nível de risco de bacteriose mostrado ao produtor no lugar da porcentagem (ver docs/decisoes.md). */
+export type RiskLevel = 'baixo' | 'medio' | 'alto';
+
 /** Corpo de `POST /predict` (backend/main.py). */
 export interface PredictionResult {
   probability: number;
@@ -26,6 +41,8 @@ export interface PredictionResult {
    */
   other_disease?: OtherDisease | null;
   model_version?: string | null;
+  diagnosis?: TopClass | null;
+  class_probabilities?: ClassProbabilities | null;
 }
 
 /** Corpo de `GET /health`. */
@@ -35,6 +52,8 @@ export interface HealthStatus {
   environment: string;
   model_loaded: boolean;
   supabase_logging: boolean;
+  /** Servidor v2. */
+  model_version?: string | null;
 }
 
 export interface User {
@@ -65,6 +84,9 @@ export interface Analysis {
   /** Outra doença provável quando a bacteriose foi descartada (servidor v2). */
   otherDisease?: OtherDisease | null;
   modelVersion?: string | null;
+  /** Probabilidades das 5 classes e a classe mais provável (servidor v2). */
+  classProbabilities?: ClassProbabilities | null;
+  topClass?: TopClass | null;
   latitude?: number;
   longitude?: number;
   /** Extra do front: origem da foto (demonstração aparece marcada). */

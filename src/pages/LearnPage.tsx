@@ -59,7 +59,7 @@ export function LearnPage() {
           <Technical>{t('learn.how.technical')}</Technical>
         </Section>
         <Section id="limitacoes" icon={TriangleAlert} title={t('learn.limits.title')} open={hash === '#limitacoes'}>
-          {list('learn.limits', 5)}
+          {list('learn.limits', 7)}
         </Section>
         <Section id="duvidas" icon={CircleHelp} title={t('learn.faq.title')} open={hash === '#duvidas'}>
           {([1, 2, 3] as const).map((n) => (
