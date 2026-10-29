@@ -30,7 +30,7 @@ async function blobToDataUrl(blob: Blob): Promise<string> {
 }
 
 /**
- * Modo demonstração: devolve as respostas gravadas para as 4 folhas de exemplo,
+ * Modo demonstração: devolve as respostas reais da IA v2 gravadas para as 5 folhas de exemplo,
  * reconhecidas pelo conteúdo (SHA-256). Tudo vem do cache do service worker,
  * então funciona em modo avião. Qualquer outra foto vai para o `fallback`.
  */

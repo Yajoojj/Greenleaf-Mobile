@@ -1,12 +1,12 @@
 import { PredictionError } from '../domain/errors';
 import type { PredictionProgress, PredictionService } from '../domain/services';
-import type { DiagnosisState, HealthStatus, PredictionResult } from '../domain/types';
+import type { HealthStatus, PredictionResult } from '../domain/types';
 import { analyseColors, classifySeverity, paintOverlay } from './colorAnalysis';
 import demoCases from './fixtures/demo-cases.json';
 
-/** Respostas gravadas no formato real (overlay como caminho do arquivo em /public/demo). */
+/** Respostas reais da IA v2 gravadas (overlay como caminho do arquivo JPEG em /public/demo). */
 export interface RecordedCase {
-  id: DiagnosisState;
+  id: string;
   image: string;
   response: Omit<PredictionResult, 'overlay'> & { overlay: string };
 }

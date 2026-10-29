@@ -20,6 +20,7 @@ import { ResultPage } from '../pages/ResultPage';
 import { SupportPage } from '../pages/SupportPage';
 import { WelcomePage } from '../pages/WelcomePage';
 import { AuthProvider } from './auth';
+import { HistorySyncPrompt } from './HistorySyncPrompt';
 import { Layout } from './Layout';
 import { ServicesProvider } from './services';
 import { SessionProvider } from './session';
@@ -107,6 +108,7 @@ export function App() {
     <AppProviders>
       <BrowserRouter>
         <UpdatePrompt />
+        <HistorySyncPrompt />
         <AppRoutes />
       </BrowserRouter>
     </AppProviders>

@@ -1,5 +1,6 @@
 import { Camera } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useAuth } from '../app/auth';
 import { useServices } from '../app/services';
 import { DIAGNOSIS_STATES, type Analysis, type DiagnosisState } from '../domain/types';
 import { useI18n } from '../i18n';
@@ -10,7 +11,8 @@ type Filter = DiagnosisState | 'all';
 
 export function HistoryPage() {
   const { t } = useI18n();
-  const { analyses } = useServices();
+  const { analyses, accountMode } = useServices();
+  const { user } = useAuth();
   const [filter, setFilter] = useState<Filter>('all');
   const [rows, setRows] = useState<Analysis[] | null>(null);
   const [failed, setFailed] = useState(false);
@@ -33,7 +35,7 @@ export function HistoryPage() {
     <>
       <div className="gl-page-title">
         <h1>{t('history.title')}</h1>
-        <p>{t('history.subtitle')}</p>
+        <p>{t(accountMode === 'cloud' && user ? 'history.subtitle.cloud' : 'history.subtitle')}</p>
       </div>
 
       <div className="gl-chips" role="group" aria-label={t('history.filter')}>
