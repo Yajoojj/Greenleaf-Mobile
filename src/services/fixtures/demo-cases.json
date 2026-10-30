@@ -5,9 +5,9 @@
     "response": {
       "probability": 0.02225617878139019,
       "model_probability": 0.02225617878139019,
-      "hsv_probability": 0.0,
+      "hsv_probability": 0,
       "class": "Saudavel",
-      "ratio": 0.0,
+      "ratio": 0,
       "severity": "Leve",
       "diagnosis": {
         "code": "Healthy",
@@ -24,7 +24,7 @@
       "other_disease": null,
       "model_version": "greenleaf_effb0-2026-10-28",
       "overlay": "/demo/folha-sadia-overlay.jpg",
-      "processing_time_ms": 677
+      "processing_time_ms": 728
     }
   },
   {
@@ -33,9 +33,9 @@
     "response": {
       "probability": 0.12807193398475647,
       "model_probability": 0.12807193398475647,
-      "hsv_probability": 0.0,
+      "hsv_probability": 0,
       "class": "Saudavel",
-      "ratio": 0.0,
+      "ratio": 0,
       "severity": "Leve",
       "diagnosis": {
         "code": "Healthy",
@@ -52,7 +52,7 @@
       "other_disease": null,
       "model_version": "greenleaf_effb0-2026-10-28",
       "overlay": "/demo/folha-leve-overlay.jpg",
-      "processing_time_ms": 773
+      "processing_time_ms": 638
     }
   },
   {
@@ -61,9 +61,9 @@
     "response": {
       "probability": 0.33098453283309937,
       "model_probability": 0.33098453283309937,
-      "hsv_probability": 0.0,
+      "hsv_probability": 0,
       "class": "Infectado",
-      "ratio": 0.0,
+      "ratio": 0,
       "severity": "Leve",
       "diagnosis": {
         "code": "Healthy",
@@ -80,7 +80,7 @@
       "other_disease": null,
       "model_version": "greenleaf_effb0-2026-10-28",
       "overlay": "/demo/folha-moderada-overlay.jpg",
-      "processing_time_ms": 670
+      "processing_time_ms": 704
     }
   },
   {
@@ -89,7 +89,7 @@
     "response": {
       "probability": 0.5087788105010986,
       "model_probability": 0.5087788105010986,
-      "hsv_probability": 1.0,
+      "hsv_probability": 1,
       "class": "Infectado",
       "ratio": 0.38057662740314363,
       "severity": "Grave",
@@ -108,7 +108,7 @@
       "other_disease": null,
       "model_version": "greenleaf_effb0-2026-10-28",
       "overlay": "/demo/folha-grave-overlay.jpg",
-      "processing_time_ms": 677
+      "processing_time_ms": 752
     }
   },
   {
@@ -117,9 +117,9 @@
     "response": {
       "probability": 0.02285468578338623,
       "model_probability": 0.02285468578338623,
-      "hsv_probability": 0.4146381387882692,
+      "hsv_probability": 0.36927570671815435,
       "class": "Saudavel",
-      "ratio": 0.08292762775765385,
+      "ratio": 0.07385514134363087,
       "severity": "Moderada",
       "diagnosis": {
         "code": "CMD",
@@ -136,7 +136,7 @@
       "other_disease": "CMD",
       "model_version": "greenleaf_effb0-2026-10-28",
       "overlay": "/demo/folha-mosaico-overlay.jpg",
-      "processing_time_ms": 763
+      "processing_time_ms": 992
     }
   }
 ]
