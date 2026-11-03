@@ -5,6 +5,7 @@ bacteriose (*Xanthomonas phaseoli* pv. *manihotis*), destacando a área suspeita
 Desenvolvimento de Software Multiplataforma da FATEC Registro.
 
 **App:** https://greenleaf-mobile.vercel.app
+**Repositório da IA:** [https://greenleaf-mobile.vercel.app](https://github.com/Yajoojj/Axios_Cassava_IA)
 
 > O resultado é uma estimativa e não substitui a avaliação de um agrônomo nem um exame de laboratório.
 
@@ -114,5 +115,5 @@ supabase/     migrações, funções e testes de RLS
 ## Equipe
 
 - Carlos Eduardo Campos Takeshita
-- Marcelo Augusto Pedroso Martins
+- Filipe de Oliveira Lima 
 - Yago Uran Kurashiki Rios
